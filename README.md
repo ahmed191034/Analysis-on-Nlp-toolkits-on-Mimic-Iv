@@ -1,4 +1,4 @@
-This repository contains all source code developed for a comparative analysis of two open-source NLP toolkits:
+This repository for clinical extraction process named Entity_Extraction.ipynb contains all source code developed for a comparative analysis of two open-source NLP toolkits:
 
 ClinicalBERT
 Stanza (i2b2)
