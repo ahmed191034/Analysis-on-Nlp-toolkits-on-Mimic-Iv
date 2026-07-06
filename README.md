@@ -1,178 +1,97 @@
-This repository for clinical extraction process named Entity_Extraction.ipynb contains all source code developed for a comparative analysis of two open-source NLP toolkits:
+Clinical NLP Toolkit Comparison: ClinicalBERT vs. Stanza on MIMIC-IV
 
-ClinicalBERT
-Stanza (i2b2)
-applied to ICU discharge summaries from the MIMIC-IV database. The project evaluates extraction quality, computational efficiency, and practical deployment feasibility for clinical text processing.
+A comparative evaluation of two open-source clinical NLP pipelines — ClinicalBERT (transformer-based) and Stanza/i2b2 (BiLSTM-CRF) — for entity extraction from ICU discharge summaries in the MIMIC-IV database. Built as a dissertation project; evaluates extraction quality, computational efficiency, and practical deployment feasibility for real clinical text.
 
-1. Project Overview
-
-The objective of this project is to extract and compare clinically meaningful entities from ICU discharge summaries using two different NLP methods:
-
-ClinicalBERT
-A transformer-based model fine-tuned for clinical NER.
-
-Stanza (i2b2)
-A sequence-model pipeline (BiLSTM-CRF) trained on the i2b2/VA shared tasks.
-
-The project includes preprocessing, abbreviation expansion, model inference, batching for large-scale processing, runtime profiling, and evaluation against manually annotated ground-truth labels.
-
-2. Code Structure
-
-You may optionally organise your archive as follows:
-
-src/
-   preprocessing.py
-   clinicalbert_extraction.py
-   stanza_extraction.py
-   evaluation.py
-
-notebooks/
-   main_pipeline.ipynb
-
-df_40k_cleaned.csv (optional intermediate)
-ClinicalBERT_40k.csv
-Stanza_40000.csv
-
-requirements.txt
-environment.yml
-README.md
+Tools: Python · PyTorch · HuggingFace Transformers · Stanza (Stanford NLP) · Pandas
 
 
-Only small intermediate CSVs may be included if they are under allowed file size limits.
+Project Overview
 
-3. Installation Instructions
-Pip installation
-pip install -r requirements.txt
+Clinical text is messy: abbreviations, inconsistent formatting, and domain-specific language make standard NLP tools unreliable. This project runs two purpose-built clinical NER approaches head-to-head on the same corpus of ICU discharge summaries and measures which one actually performs better in practice:
 
-Conda environment (recommended)
-conda create -n clinical_ner python=3.10
+
+ClinicalBERT — a transformer model fine-tuned for clinical named entity recognition.
+Stanza (i2b2) — a sequence-labelling pipeline (BiLSTM-CRF) trained on the i2b2/VA shared-task data.
+
+
+The pipeline covers preprocessing and abbreviation expansion, batched inference over a 40,000-note corpus, runtime profiling, and evaluation against manually annotated ground truth.
+
+Results
+
+Entity-level precision/recall/F1 against the manually annotated ground truth, evaluated under both strict matching (exact span + type match) and lenient matching (partial span overlap counts).
+
+ModelEntity TypeStrict PrecisionStrict RecallStrict F1Lenient PrecisionLenient RecallLenient F1ClinicalBERTDisease0.40%0.42%0.41%3.49%3.69%3.55%ClinicalBERTTreatment0%0%0%0.40%0.51%0.45%Stanza (i2b2)Disease0%0%0%23.08%23.77%23.42%Stanza (i2b2)Treatment0%0%0%8.93%11.24%9.80%
+
+Reading the results: Stanza clearly outperforms ClinicalBERT on both entity types under lenient matching, though both models score low in absolute terms, and strict-match scores collapse to near zero across the board. That gap between strict and lenient — rather than either model doing well outright — is itself a finding worth discussing: it points to a span-alignment or boundary-matching issue in the extraction/evaluation pipeline (e.g. tokenization or offset mismatches against the ground-truth annotations) rather than the models finding nothing at all. Add a short paragraph here on what you think is driving the strict/lenient gap and the ClinicalBERT/Stanza gap — that interpretation is what turns this from a results table into an actual finding.
+
+(Add the runtime/computational-efficiency comparison here once you have it — it's referenced in the project overview as one of the three comparison axes.)
+
+Repository Structure
+
+├── src/
+│   ├── preprocessing.py           # text cleaning + abbreviation expansion
+│   ├── clinicalbert_extraction.py # ClinicalBERT inference
+│   ├── stanza_extraction.py       # Stanza/i2b2 inference
+│   └── evaluation.py              # precision/recall/F1 against ground truth
+├── notebooks/
+│   └── main_pipeline.ipynb
+├── ClinicalBERT_40k.csv           # ClinicalBERT entity outputs
+├── Stanza_40000.csv               # Stanza entity outputs
+├── requirements.txt
+└── environment.yml
+
+Installation
+
+bashconda create -n clinical_ner python=3.10
 conda activate clinical_ner
 pip install -r requirements.txt
 
-GPU-enabled installation (optional)
-
-ClinicalBERT benefits significantly from GPU acceleration.
-
+# Optional — ClinicalBERT benefits significantly from GPU acceleration
 pip install torch==2.3.0 --index-url https://download.pytorch.org/whl/cu121
 
+Dataset Access (not included in this repo)
 
-GPU usage is automatic within the code when available.
+This project uses MIMIC-IV Note Events — Discharge Summaries, available via PhysioNet after completing their required credentialing. The dataset is not included here due to licensing, privacy, and size restrictions.
 
-4. Dataset Requirements (Not Included)
+To reproduce:
 
-This project requires access to:
-MIMIC-IV Note Events – Discharge Summaries (DS notes)
-Available from PhysioNet:
-https://physionet.org/content/mimiciv/
-
-Dataset cannot be included due to:
-
-Licensing restrictions.
-
-University submission size limit (maximum 100 MB).
-
-Ethical and privacy considerations.
-
-Recreating the input dataset
 
 Download discharge.csv from MIMIC-IV after credential approval.
+Update the file path in src/preprocessing.py.
+Run preprocessing: python src/preprocessing.py
 
-Place the file in the expected path or update file paths in the scripts.
 
-Run preprocessing to create the cleaned dataset:
+Running the Pipeline
 
-python preprocessing.py
+bashpython -m src.run_pipeline
 
-5. Running the Code
-Complete pipeline
-python untitled64.py
+Or step through notebooks/main_pipeline.ipynb interactively.
 
-Notebooks
+Outputs:
 
-You may run:
 
-notebooks/main_pipeline.ipynb
+df_40k_cleaned.csv — preprocessed notes
+ClinicalBERT_40k.csv / Stanza_40000.csv — entity extraction outputs per model
+Evaluation summary (precision, recall, F1) via src/evaluation.py
 
-Outputs
 
-The pipeline generates:
+System Requirements
 
-df_40k_cleaned.csv – preprocessed notes.
+ComponentMinimumRecommendedPython3.93.10RAM8 GB16 GB+GPUOptionalCUDA-enabled, for faster ClinicalBERT inferenceDisk10 GB20 GB+ for MIMIC-IV subsets
 
-ClinicalBERT_40k.csv – ClinicalBERT entity outputs.
+The pipeline is deterministic aside from sampling (random_state=42).
 
-Stanza_40000.csv – Stanza entity outputs.
+Third-Party Components
 
-Evaluation summaries including precision, recall, F1-scores.
+ComponentSourceLicenseClinicalBERT modelHuggingFace Model HubApache-2.0Transformers libraryHuggingFaceApache-2.0Stanza ToolkitStanford NLPApache-2.0PyTorchMeta AIBSDPandas, NumPyCommunityBSD
 
-6. Provenance and Use of Third-Party Code
+All preprocessing, extraction logic, batching, evaluation, and analysis code was developed by the author for this dissertation.
 
-The following open-source tools and models are used:
+Note on AI Assistance
 
-Component	Source	License
-ClinicalBERT model	HuggingFace Model Hub	Apache-2.0
-Transformers library	HuggingFace	Apache-2.0
-Stanza Toolkit	Stanford NLP	Apache-2.0
-PyTorch	Meta AI	BSD
-Pandas, NumPy	Community	BSD
+In line with the university's Generative AI policy: ChatGPT was used to improve comment readability, refine academic phrasing, and suggest documentation structure. It was not used to generate data, model predictions, ground-truth labels, evaluation metrics, or research conclusions. All AI-assisted text was reviewed and edited by the author.
 
-All other code (data cleaning functions, entity extraction logic, batching, evaluation, runtime profiling) was developed by the author specifically for this dissertation.
+Contact
 
-Model loading and pipeline examples follow official documentation conventions.
-
-7. Documentation of AI Use
-
-In compliance with the University’s Generative AI Policy:
-
-Generative AI tools (ChatGPT) were used to assist with:
-
-Improving readability of comments and documentation.
-
-Refining academic phrasing.
-
-Explaining code cells for clarity.
-
-Suggesting organisational structures for the README and project files.
-
-AI tools were not used to:
-
-Generate datasets.
-
-Produce model predictions.
-
-Generate ground truth labels.
-
-Compute evaluation metrics.
-
-Conduct analysis or conclusions of the research.
-
-All AI-assisted text was carefully reviewed and edited by the author.
-
-8. Reproducibility Notes
-
-To reproduce the study:
-
-Install the environment via requirements.txt or environment.yml.
-
-Download MIMIC-IV discharge summaries.
-
-Run preprocessing to clean and normalise the text.
-
-Execute ClinicalBERT and Stanza extraction modules.
-
-Compute performance metrics using evaluation scripts.
-
-The code is deterministic aside from sampling (random_state=42) and may require adequate RAM to handle the 40,000-note corpus. GPU availability improves runtime but is not mandatory.
-
-9. System Requirements
-Component	Minimum	Recommended
-Python	3.9	3.10
-RAM	8 GB	16 GB+
-GPU	Optional	CUDA-enabled GPU for faster ClinicalBERT inference
-Disk Space	10 GB	20 GB+ for MIMIC-IV subsets
-10. Contact Details
-
-For questions related to the code or reproducing results:
-
-Name: Muhammad Ahmed Jawaid
-email: ahmedjawaid513@outlook.com
+Muhammad Ahmed Jawaid
+LinkedIn · ahmedjawaid513@outlook.com
