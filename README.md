@@ -107,4 +107,4 @@ In line with the university's Generative AI policy: ChatGPT was used to improve 
 ## Contact
 
 **Muhammad Ahmed Jawaid**
-[LinkedIn](https://www.linkedin.com/in/m-ahmed-jawaid-416662253/) · ahmedjawaid513@outlook.com
+[LinkedIn](https://www.linkedin.com/in/ahmedjawaid-analyst/) · ahmedjawaid513@outlook.com
